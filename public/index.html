@@ -469,7 +469,7 @@
       btn.className = "btn-next";
       btn.innerHTML = "Continue →";
       btn.disabled = !state.style.length;
-      btn.onclick = () => { state.step = 3; render(); };
+      btn.onclick = () => { state.step = 4; render(); };
       nav(c, () => { state.step = 2; render(); }, btn);
       area.appendChild(c);
     }
