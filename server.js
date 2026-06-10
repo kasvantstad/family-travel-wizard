@@ -17,7 +17,13 @@ app.post("/api/report", (req, res) => {
 
   const body = JSON.stringify({
     model: "claude-sonnet-4-6",
-    max_tokens: 1500,
+    max_tokens: 2000,
+    tools: [
+      {
+        type: "web_search_20250305",
+        name: "web_search"
+      }
+    ],
     messages: [{ role: "user", content: prompt }],
   });
 
@@ -30,6 +36,7 @@ app.post("/api/report", (req, res) => {
       "Content-Length": Buffer.byteLength(body),
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
+      "anthropic-beta": "web-search-2025-03-05",
     },
   };
 
@@ -42,7 +49,11 @@ app.post("/api/report", (req, res) => {
         if (response.statusCode !== 200) {
           return res.status(response.statusCode).json({ error: parsed.error?.message || "Anthropic API error" });
         }
-        const text = parsed.content.map((b) => b.text || "").join("");
+        // Extract all text blocks (Claude may search then respond)
+        const text = parsed.content
+          .filter(b => b.type === "text")
+          .map(b => b.text)
+          .join("");
         res.json({ text });
       } catch (e) {
         res.status(500).json({ error: "Failed to parse API response: " + e.message });
