@@ -415,8 +415,11 @@ Return ONLY valid JSON, no markdown, no backticks, no explanation:
     const res=await fetch("/api/report",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
     const data=await res.json();
     if (!res.ok) throw new Error(data.error||"Server error");
-    const clean=data.text.replace(/```json|```/g,"").trim();
-    const report=JSON.parse(clean);
+    const rawW=data.text;
+    const startW=rawW.indexOf("{");
+    const endW=rawW.lastIndexOf("}");
+    if(startW===-1||endW===-1) throw new Error("No JSON in response: "+rawW.substring(0,300));
+    const report=JSON.parse(rawW.substring(startW,endW+1));
     lastReport=report;
     renderWizardReport(report);
     const pdfBtn=document.getElementById("pdf-btn");
@@ -647,8 +650,11 @@ Return ONLY valid JSON, no markdown, no backticks:
     const res=await fetch("/api/report",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
     const data=await res.json();
     if (!res.ok) throw new Error(data.error||"Server error");
-    const clean=data.text.replace(/```json|```/g,"").trim();
-    const result=JSON.parse(clean);
+    const raw=data.text;
+    const start=raw.indexOf("{");
+    const end=raw.lastIndexOf("}");
+    if(start===-1||end===-1) throw new Error("No JSON in response: "+raw.substring(0,300));
+    const result=JSON.parse(raw.substring(start,end+1));
     lastCompare=result;
     renderCompareResult(result);
     const pdfBtn=document.getElementById("cpdf-btn");
