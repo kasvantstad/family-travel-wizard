@@ -3,206 +3,101 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Family Travel Readiness Wizard</title>
+  <title>Family Travel Readiness</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #f7f6f2;
-      --surface: #ffffff;
-      --surface2: #f1f0ec;
-      --border: rgba(0,0,0,0.1);
-      --border-strong: rgba(0,0,0,0.18);
-      --text: #1a1a18;
-      --text-2: #5a5a54;
-      --text-3: #9a9a94;
-      --green: #1D9E75;
-      --green-light: #E1F5EE;
-      --green-dark: #0F6E56;
-      --green-text: #085041;
-      --amber: #EF9F27;
-      --amber-light: #FAEEDA;
-      --amber-text: #633806;
-      --red: #E24B4A;
-      --red-light: #FCEBEB;
-      --red-text: #A32D2D;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --bg: #f7f6f2; --surface: #ffffff; --surface2: #f1f0ec;
+      --border: rgba(0,0,0,0.1); --border-strong: rgba(0,0,0,0.18);
+      --text: #1a1a18; --text-2: #5a5a54; --text-3: #9a9a94;
+      --green: #1D9E75; --green-light: #E1F5EE; --green-dark: #0F6E56; --green-text: #085041;
+      --amber: #EF9F27; --amber-light: #FAEEDA; --amber-text: #633806;
+      --red: #E24B4A; --red-light: #FCEBEB; --red-text: #A32D2D;
+      --blue: #3B82F6; --blue-light: #EFF6FF; --blue-text: #1E40AF;
+      --radius: 12px; --radius-sm: 8px;
     }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem 4rem; }
+    header { text-align: center; margin-bottom: 2rem; }
+    header .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    header h1 { font-size: 26px; font-weight: 600; line-height: 1.2; }
+    header p { font-size: 15px; color: var(--text-2); margin-top: 6px; }
+    .container { width: 100%; max-width: 620px; }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem 4rem;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    header .eyebrow {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--green);
-      margin-bottom: 8px;
-    }
-    header h1 {
-      font-size: 26px;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 1.2;
-    }
-    header p {
-      font-size: 15px;
-      color: var(--text-2);
-      margin-top: 6px;
-    }
-
-    .wizard {
-      width: 100%;
-      max-width: 580px;
-    }
+    /* Mode picker */
+    .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 0.5rem; }
+    .mode-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1.5rem; cursor: pointer; transition: all 0.15s; text-align: left; }
+    .mode-card:hover { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-light); }
+    .mode-icon { font-size: 28px; margin-bottom: 10px; }
+    .mode-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .mode-desc { font-size: 13px; color: var(--text-2); line-height: 1.5; }
 
     /* Progress */
     .progress-wrap { margin-bottom: 1.75rem; }
     .progress-bar { display: flex; align-items: center; }
-    .step-dot {
-      width: 30px; height: 30px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 600; flex-shrink: 0;
-      transition: all 0.2s;
-    }
+    .step-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; transition: all 0.2s; }
     .step-dot.done { background: var(--green); color: white; }
     .step-dot.active { background: var(--text); color: white; }
     .step-dot.upcoming { background: var(--surface2); color: var(--text-3); border: 1px solid var(--border); }
     .step-line { flex: 1; height: 1px; background: var(--border); }
     .step-line.done { background: var(--green); }
-    .progress-label {
-      font-size: 12px; color: var(--text-2); margin-top: 8px;
-    }
+    .progress-label { font-size: 12px; color: var(--text-2); margin-top: 8px; }
 
     /* Card */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; }
     .card-title { font-size: 19px; font-weight: 600; margin-bottom: 4px; }
     .card-sub { font-size: 14px; color: var(--text-2); margin-bottom: 1.5rem; line-height: 1.5; }
 
     /* Fields */
     .field { margin-bottom: 1.1rem; }
     label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
-    input[type=text], select {
-      width: 100%; padding: 9px 12px;
-      border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
-      font-family: inherit; font-size: 14px; color: var(--text);
-      background: var(--surface); outline: none;
-      transition: border-color 0.15s;
-    }
+    input[type=text], select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface); outline: none; transition: border-color 0.15s; }
     input[type=text]:focus, select:focus { border-color: var(--green); }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
     /* Children */
     .age-list { display: flex; flex-direction: column; gap: 8px; }
-    .age-row {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 14px;
-    }
+    .age-row { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 14px; }
     .age-row .child-label { font-size: 13px; color: var(--text-2); flex: 1; }
     .age-val { font-size: 15px; font-weight: 600; min-width: 48px; text-align: center; }
-    .age-btn {
-      width: 30px; height: 30px; border-radius: 50%;
-      border: 1px solid var(--border-strong); background: var(--surface);
-      cursor: pointer; font-size: 18px; line-height: 1;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text); transition: background 0.1s;
-    }
+    .age-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--surface); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: var(--text); transition: background 0.1s; }
     .age-btn:hover { background: var(--surface2); }
-    .del-btn {
-      width: 26px; height: 26px; border-radius: 50%;
-      border: 1px solid var(--border); background: none;
-      cursor: pointer; font-size: 14px; color: var(--text-3);
-      display: flex; align-items: center; justify-content: center;
-      margin-left: auto;
-    }
+    .del-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: none; cursor: pointer; font-size: 14px; color: var(--text-3); display: flex; align-items: center; justify-content: center; margin-left: auto; }
     .del-btn:hover { color: var(--red); border-color: var(--red); }
-    .add-btn {
-      display: flex; align-items: center; gap: 6px;
-      padding: 9px 14px; margin-top: 10px;
-      border: 1px dashed var(--border-strong); border-radius: var(--radius-sm);
-      background: none; cursor: pointer; color: var(--text-2);
-      font-size: 13px; font-family: inherit;
-      transition: all 0.15s;
-    }
+    .add-btn { display: flex; align-items: center; gap: 6px; padding: 9px 14px; margin-top: 10px; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); background: none; cursor: pointer; color: var(--text-2); font-size: 13px; font-family: inherit; transition: all 0.15s; }
     .add-btn:hover { background: var(--surface2); color: var(--text); }
 
     /* Chips */
     .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 7px 14px; border-radius: 20px;
-      border: 1px solid var(--border-strong); font-size: 13px;
-      cursor: pointer; background: var(--surface); color: var(--text);
-      transition: all 0.15s; user-select: none;
-    }
+    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border-strong); font-size: 13px; cursor: pointer; background: var(--surface); color: var(--text); transition: all 0.15s; user-select: none; }
     .chip:hover { background: var(--surface2); }
     .chip.selected { background: var(--text); color: white; border-color: var(--text); }
 
+    /* Destination compare inputs */
+    .dest-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .dest-row input { flex: 1; }
+    .dest-num { width: 26px; height: 26px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+
     /* Nav */
     .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
-    .btn-back {
-      background: none; border: 1px solid var(--border-strong);
-      padding: 9px 18px; border-radius: var(--radius-sm);
-      cursor: pointer; font-size: 14px; color: var(--text-2);
-      font-family: inherit; transition: all 0.15s;
-    }
+    .btn-back { background: none; border: 1px solid var(--border-strong); padding: 9px 18px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; color: var(--text-2); font-family: inherit; transition: all 0.15s; }
     .btn-back:hover { background: var(--surface2); }
-    .btn-next {
-      background: var(--text); border: none; padding: 9px 22px;
-      border-radius: var(--radius-sm); cursor: pointer;
-      font-size: 14px; color: white; font-family: inherit;
-      font-weight: 500; transition: opacity 0.15s;
-      display: flex; align-items: center; gap: 6px;
-    }
+    .btn-next { background: var(--text); border: none; padding: 9px 22px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; color: white; font-family: inherit; font-weight: 500; transition: opacity 0.15s; display: flex; align-items: center; gap: 6px; }
     .btn-next:hover { opacity: 0.82; }
     .btn-next:disabled { opacity: 0.35; cursor: not-allowed; }
-    .btn-generate {
-      background: var(--green); border: none; padding: 9px 22px;
-      border-radius: var(--radius-sm); cursor: pointer;
-      font-size: 14px; color: white; font-family: inherit;
-      font-weight: 500; transition: background 0.15s;
-      display: flex; align-items: center; gap: 7px;
-    }
+    .btn-generate { background: var(--green); border: none; padding: 9px 22px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; color: white; font-family: inherit; font-weight: 500; transition: background 0.15s; display: flex; align-items: center; gap: 7px; }
     .btn-generate:hover { background: var(--green-dark); }
     .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-pdf { background: var(--blue); border: none; padding: 9px 18px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: white; font-family: inherit; font-weight: 500; transition: background 0.15s; display: flex; align-items: center; gap: 6px; }
+    .btn-pdf:hover { background: #2563EB; }
 
     /* Report */
-    .report-section { margin-bottom: 1rem; }
-    .section-card {
-      background: var(--surface2); border-radius: var(--radius-sm);
-      padding: 1rem 1.25rem;
-    }
-    .section-eyebrow {
-      font-size: 11px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 10px;
-    }
-    .badge {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 3px 10px; border-radius: 12px;
-      font-size: 12px; font-weight: 600;
-    }
+    .section-card { background: var(--surface2); border-radius: var(--radius-sm); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+    .section-eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 10px; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
     .badge-green { background: var(--green-light); color: var(--green-text); }
     .badge-amber { background: var(--amber-light); color: var(--amber-text); }
     .badge-red { background: var(--red-light); color: var(--red-text); }
@@ -210,19 +105,9 @@
     .score-num { font-size: 26px; font-weight: 600; }
     .pip-row { display: flex; gap: 3px; margin-bottom: 8px; }
     .pip { width: 20px; height: 6px; border-radius: 3px; background: var(--border); }
-    .pip.g { background: var(--green); }
-    .pip.a { background: var(--amber); }
-    .pip.r { background: var(--red); }
-    .verdict-text {
-      font-size: 14px; color: var(--text-2); font-style: italic;
-      padding: 10px 0 12px; border-bottom: 1px solid var(--border);
-      margin-bottom: 12px; line-height: 1.6;
-    }
-    .row-item {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      padding: 7px 0; border-bottom: 1px solid var(--border);
-      font-size: 13px; gap: 12px;
-    }
+    .pip.g { background: var(--green); } .pip.a { background: var(--amber); } .pip.r { background: var(--red); }
+    .verdict-text { font-size: 14px; color: var(--text-2); font-style: italic; padding: 10px 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 12px; line-height: 1.6; }
+    .row-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; gap: 12px; }
     .row-item:last-child { border-bottom: none; }
     .row-key { color: var(--text-2); flex-shrink: 0; }
     .row-val { color: var(--text); text-align: right; }
@@ -235,418 +120,651 @@
     .tip-list li { font-size: 13px; color: var(--text); padding-left: 14px; position: relative; line-height: 1.5; }
     .tip-list li::before { content: "—"; position: absolute; left: 0; color: var(--text-3); }
     .two-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .loading-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 1.5rem 0; color: var(--text-2); font-size: 14px;
-    }
+
+    /* Compare results */
+    .compare-grid { display: grid; gap: 12px; }
+    .compare-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .compare-card.winner { border-color: var(--green); background: var(--green-light); }
+    .compare-dest-name { font-size: 16px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .winner-badge { font-size: 11px; background: var(--green); color: white; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .compare-scores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+    .score-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 8px; text-align: center; }
+    .score-box .val { font-size: 18px; font-weight: 600; }
+    .score-box .lbl { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .compare-verdict { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-bottom: 8px; }
+    .compare-pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pro-con-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 8px 10px; }
+    .pro-con-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+    .pro-con-title.pros { color: var(--green-text); }
+    .pro-con-title.cons { color: var(--red-text); }
+    .pro-con-list { font-size: 12px; color: var(--text-2); display: flex; flex-direction: column; gap: 3px; }
+
+    /* Loading */
+    .loading-row { display: flex; align-items: center; gap: 12px; padding: 1.5rem 0; color: var(--text-2); font-size: 14px; }
     .dots { display: flex; gap: 4px; }
-    .dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--green);
-      animation: blink 1.2s ease-in-out infinite;
-    }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink {
-      0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
-      40% { opacity: 1; transform: scale(1); }
-    }
-    .error-box {
-      background: var(--red-light); color: var(--red-text);
-      border-radius: var(--radius-sm); padding: 12px 16px;
-      font-size: 13px; line-height: 1.5; margin-top: 1rem;
-    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: blink 1.2s ease-in-out infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; } .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+    .error-box { background: var(--red-light); color: var(--red-text); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; line-height: 1.5; margin-top: 1rem; }
+    .disclaimer { font-size: 11px; color: var(--text-3); line-height: 1.5; margin-top: 1rem; padding: 10px 14px; background: var(--surface2); border-radius: var(--radius-sm); }
 
     @media (max-width: 480px) {
-      .two-col, .two-cards { grid-template-columns: 1fr; }
+      .two-col, .two-cards, .mode-grid, .compare-pros-cons, .compare-scores { grid-template-columns: 1fr; }
       header h1 { font-size: 22px; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="eyebrow">✈ Trip planner</div>
-    <h1>Family Travel Readiness</h1>
-    <p>A personalised health, safety & planning report for your family trip.</p>
-  </header>
+<header>
+  <div class="eyebrow">✈ Family Travel Planner</div>
+  <h1>Travel Readiness for Families</h1>
+  <p>AI-powered health, safety & planning reports — built for parents.</p>
+</header>
 
-  <div class="wizard">
-    <div id="progress-area"></div>
-    <div id="panel-area"></div>
-  </div>
+<div class="container">
+  <div id="progress-area"></div>
+  <div id="panel-area"></div>
+</div>
 
-  <script>
-    const STEPS = ["Destination", "Children", "Timing", "Travel style", "Concerns"];
-    const REGIONS = ["Sub-Saharan Africa","North Africa","South & Southeast Asia","East Asia","Central America","South America","Caribbean","Middle East","Other"];
-    const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const STYLES = ["Luxury / resorts","Budget / backpacker","Adventure / outdoors","Wildlife & nature","Cultural immersion","Beach & relaxation","City breaks","Road trip"];
-    const CONCERNS = ["Vaccinations & health","Malaria risk","Food & water safety","Medical facilities","Safety & crime","Child-friendly activities","Flight length","Visa requirements","Travel insurance","Language barriers"];
+<script>
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const STYLES = ["Luxury / resorts","Budget / backpacker","Adventure / outdoors","Wildlife & nature","Cultural immersion","Beach & relaxation","City breaks","Road trip"];
+const CONCERNS = ["Vaccinations & health","Malaria risk","Food & water safety","Medical facilities","Safety & crime","Child-friendly activities","Flight length","Visa requirements","Travel insurance","Language barriers"];
+const STEPS_WIZARD = ["Destination","Children","Timing","Travel style","Concerns"];
+const STEPS_COMPARE = ["Destinations","Children","Timing","Travel style"];
 
-    const state = {
-      step: 0,
-      destination: "",
-      region: "",
-      children: [{ age: 4 }],
-      month: "",
-      duration: "",
-      style: [],
-      concerns: []
-    };
+// ── State ─────────────────────────────────────────────────────────────────────
+let mode = null; // 'wizard' | 'compare'
+const wiz = { step:0, destination:"", children:[{age:4}], month:"", duration:"", style:[], concerns:[] };
+const cmp = { step:0, destinations:["","",""], children:[{age:4}], month:"", duration:"", style:[] };
+let lastReport = null;
+let lastCompare = null;
 
-    function render() {
-      renderProgress();
-      const area = document.getElementById("panel-area");
-      area.innerHTML = "";
-      [step0, step1, step2, step3, step4, step5][state.step](area);
-    }
+// ── Render router ─────────────────────────────────────────────────────────────
+function render() {
+  if (!mode) { renderHome(); return; }
+  if (mode === 'wizard') renderWizard();
+  if (mode === 'compare') renderCompare();
+}
 
-    function renderProgress() {
-      const area = document.getElementById("progress-area");
-      if (state.step >= 5) { area.innerHTML = ""; return; }
-      area.innerHTML = "";
-      const bar = document.createElement("div");
-      bar.className = "progress-bar";
-      for (let i = 0; i < 5; i++) {
-        const d = document.createElement("div");
-        d.className = "step-dot " + (i < state.step ? "done" : i === state.step ? "active" : "upcoming");
-        d.textContent = i < state.step ? "✓" : i + 1;
-        bar.appendChild(d);
-        if (i < 4) {
-          const l = document.createElement("div");
-          l.className = "step-line" + (i < state.step ? " done" : "");
-          bar.appendChild(l);
-        }
-      }
-      const wrap = document.createElement("div");
-      wrap.className = "progress-wrap";
-      wrap.appendChild(bar);
-      const lbl = document.createElement("div");
-      lbl.className = "progress-label";
-      lbl.textContent = `Step ${state.step + 1} of 5 — ${STEPS[state.step]}`;
-      wrap.appendChild(lbl);
-      area.appendChild(wrap);
-    }
-
-    function card(title, sub) {
-      const c = document.createElement("div");
-      c.className = "card";
-      c.innerHTML = `<div class="card-title">${title}</div><div class="card-sub">${sub}</div>`;
-      return c;
-    }
-
-    function nav(c, backFn, nextEl) {
-      const n = document.createElement("div");
-      n.className = "nav";
-      if (backFn) {
-        const b = document.createElement("button");
-        b.className = "btn-back";
-        b.textContent = "Back";
-        b.onclick = backFn;
-        n.appendChild(b);
-      } else {
-        n.appendChild(document.createElement("div"));
-      }
-      n.appendChild(nextEl);
-      c.appendChild(n);
-    }
-
-    function step0(area) {
-      const c = card("Where are you heading?", "Tell us your destination so we can tailor the report to the right region.");
-      c.innerHTML += `
-        <div class="field"><label class="lbl">City or country</label>
-          <input type="text" id="dest" placeholder="e.g. Cape Town, South Africa" value="${state.destination}" /></div>
-        <div class="field"><label class="lbl">Region</label>
-          <select id="region">
-            <option value="">Select a region…</option>
-            ${REGIONS.map(r => `<option value="${r}" ${state.region === r ? "selected" : ""}>${r}</option>`).join("")}
-          </select></div>`;
-      const btn = document.createElement("button");
-      btn.className = "btn-next";
-      btn.innerHTML = "Continue →";
-      btn.onclick = () => {
-        state.destination = document.getElementById("dest").value.trim();
-        state.region = document.getElementById("region").value;
-        if (!state.destination || !state.region) return;
-        state.step = 1; render();
-      };
-      nav(c, null, btn);
-      area.appendChild(c);
-    }
-
-    function step1(area) {
-      const c = card("Children travelling with you", "Add each child and set their age. Age affects vaccination advice, activities, and risk levels.");
-
-      const listWrap = document.createElement("div");
-      c.appendChild(listWrap);
-
-      function renderKids() {
-        listWrap.innerHTML = "";
-        const list = document.createElement("div");
-        list.className = "age-list";
-        state.children.forEach((ch, i) => {
-          const row = document.createElement("div");
-          row.className = "age-row";
-          row.innerHTML = `
-            <span class="child-label">Child ${i + 1}</span>
-            <button class="age-btn" data-a="dec" data-i="${i}">−</button>
-            <span class="age-val">${ch.age} yr${ch.age !== 1 ? "s" : ""}</span>
-            <button class="age-btn" data-a="inc" data-i="${i}">+</button>
-            ${state.children.length > 1 ? `<button class="del-btn" data-a="del" data-i="${i}">✕</button>` : ""}`;
-          list.appendChild(row);
-        });
-        list.querySelectorAll("[data-a]").forEach(btn => {
-          btn.onclick = () => {
-            const i = +btn.dataset.i;
-            if (btn.dataset.a === "inc") state.children[i].age = Math.min(17, state.children[i].age + 1);
-            if (btn.dataset.a === "dec") state.children[i].age = Math.max(0, state.children[i].age - 1);
-            if (btn.dataset.a === "del") state.children.splice(i, 1);
-            renderKids();
-          };
-        });
-        const addBtn = document.createElement("button");
-        addBtn.className = "add-btn";
-        addBtn.innerHTML = "+ Add another child";
-        addBtn.onclick = () => { state.children.push({ age: 4 }); renderKids(); };
-        listWrap.appendChild(list);
-        listWrap.appendChild(addBtn);
-      }
-      renderKids();
-
-      const btn = document.createElement("button");
-      btn.className = "btn-next";
-      btn.innerHTML = "Continue →";
-      btn.onclick = () => { state.step = 2; render(); };
-      nav(c, () => { state.step = 0; render(); }, btn);
-      area.appendChild(c);
-    }
-
-    function step2(area) {
-      const c = card("When are you going?", "Travel timing affects weather windows, seasonal health risks, and what's open.");
-      c.innerHTML += `
-        <div class="two-col">
-          <div class="field"><label class="lbl">Month of travel</label>
-            <select id="month">
-              <option value="">Select…</option>
-              ${MONTHS.map(m => `<option value="${m}" ${state.month === m ? "selected" : ""}>${m}</option>`).join("")}
-            </select></div>
-          <div class="field"><label class="lbl">Trip duration</label>
-            <select id="dur">
-              <option value="">Select…</option>
-              ${["3–5 days","1 week","10 days","2 weeks","3 weeks","1 month+"].map(d => `<option value="${d}" ${state.duration === d ? "selected" : ""}>${d}</option>`).join("")}
-            </select></div>
-        </div>`;
-      const btn = document.createElement("button");
-      btn.className = "btn-next";
-      btn.innerHTML = "Continue →";
-      btn.onclick = () => {
-        state.month = document.getElementById("month").value;
-        state.duration = document.getElementById("dur").value;
-        if (!state.month || !state.duration) return;
-        state.step = 3; render();
-      };
-      nav(c, () => { state.step = 1; render(); }, btn);
-      area.appendChild(c);
-    }
-
-    function step3(area) {
-      const c = card("What's your travel style?", "Pick all that apply — we'll match recommendations to how your family likes to travel.");
-      const chipWrap = document.createElement("div");
-      chipWrap.className = "chip-group";
-      STYLES.forEach(s => {
-        const ch = document.createElement("div");
-        ch.className = "chip" + (state.style.includes(s) ? " selected" : "");
-        ch.textContent = s;
-        ch.onclick = () => {
-          if (state.style.includes(s)) state.style = state.style.filter(x => x !== s);
-          else state.style.push(s);
-          ch.classList.toggle("selected", state.style.includes(s));
-          btn.disabled = !state.style.length;
-        };
-        chipWrap.appendChild(ch);
-      });
-      c.appendChild(chipWrap);
-      const btn = document.createElement("button");
-      btn.className = "btn-next";
-      btn.innerHTML = "Continue →";
-      btn.disabled = !state.style.length;
-      btn.onclick = () => { state.step = 4; render(); };
-      nav(c, () => { state.step = 2; render(); }, btn);
-      area.appendChild(c);
-    }
-
-    function step4(area) {
-      const c = card("What are your main concerns?", "Select everything on your mind — the report addresses each one directly.");
-      const chipWrap = document.createElement("div");
-      chipWrap.className = "chip-group";
-      CONCERNS.forEach(con => {
-        const ch = document.createElement("div");
-        ch.className = "chip" + (state.concerns.includes(con) ? " selected" : "");
-        ch.textContent = con;
-        ch.onclick = () => {
-          if (state.concerns.includes(con)) state.concerns = state.concerns.filter(x => x !== con);
-          else state.concerns.push(con);
-          ch.classList.toggle("selected", state.concerns.includes(con));
-          genBtn.disabled = !state.concerns.length;
-        };
-        chipWrap.appendChild(ch);
-      });
-      c.appendChild(chipWrap);
-      const genBtn = document.createElement("button");
-      genBtn.className = "btn-generate";
-      genBtn.innerHTML = "✦ Generate report";
-      genBtn.disabled = !state.concerns.length;
-      genBtn.onclick = () => { state.step = 5; render(); generateReport(); };
-      nav(c, () => { state.step = 3; render(); }, genBtn);
-      area.appendChild(c);
-    }
-
-    function step5(area) {
-      const c = document.createElement("div");
-      c.className = "card";
-      c.innerHTML = `
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:1.25rem;">
-          <div>
-            <div class="card-title" style="margin-bottom:3px">Family Travel Readiness Report</div>
-            <div style="font-size:13px;color:var(--text-2)">${state.destination} &middot; ${state.month} &middot; ${state.duration}</div>
-          </div>
+// ── Home ──────────────────────────────────────────────────────────────────────
+function renderHome() {
+  document.getElementById("progress-area").innerHTML = "";
+  document.getElementById("panel-area").innerHTML = `
+    <div class="card">
+      <div class="card-title">How can we help you?</div>
+      <div class="card-sub">Choose your starting point.</div>
+      <div class="mode-grid">
+        <div class="mode-card" id="m-wizard">
+          <div class="mode-icon">🗺️</div>
+          <div class="mode-title">I have a destination</div>
+          <div class="mode-desc">Get a full readiness report — health checklist, safety assessment, activities, and a packing list tailored to your children's ages.</div>
         </div>
-        <div id="report-body">
-          <div class="loading-row">
-            <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-            Generating your report…
-          </div>
+        <div class="mode-card" id="m-compare">
+          <div class="mode-icon">⚖️</div>
+          <div class="mode-title">I'm still choosing</div>
+          <div class="mode-desc">Compare 2–3 destinations side by side. We score each one for your family and tell you which fits best.</div>
         </div>
-        <div class="nav" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
-          <button class="btn-back" id="restart">← Start over</button>
-          <div></div>
-        </div>`;
-      document.getElementById("panel-area").appendChild(c);
-      document.getElementById("restart").onclick = () => {
-        Object.assign(state, { step:0, destination:"", region:"", children:[{age:4}], month:"", duration:"", style:[], concerns:[] });
-        render();
-      };
-    }
+      </div>
+    </div>`;
+  document.getElementById("m-wizard").addEventListener("click", () => { mode = 'wizard'; render(); });
+  document.getElementById("m-compare").addEventListener("click", () => { mode = 'compare'; render(); });
+}
 
-    async function generateReport() {
-      const childDesc = state.children.map((c, i) => `Child ${i+1}: ${c.age} year${c.age !== 1 ? "s" : ""} old`).join(", ");
-      const prompt = `You are a family travel health and safety expert. Generate a Family Travel Readiness Report as a JSON object.
+// ── Shared helpers ─────────────────────────────────────────────────────────────
+function card(title, sub) {
+  const c = document.createElement("div");
+  c.className = "card";
+  if (title) c.innerHTML = `<div class="card-title">${title}</div><div class="card-sub">${sub}</div>`;
+  return c;
+}
+
+function navRow(backFn, nextEl) {
+  const n = document.createElement("div");
+  n.className = "nav";
+  if (backFn) {
+    const b = document.createElement("button");
+    b.className = "btn-back"; b.textContent = "Back";
+    b.addEventListener("click", backFn);
+    n.appendChild(b);
+  } else { n.appendChild(document.createElement("div")); }
+  n.appendChild(nextEl);
+  return n;
+}
+
+function childrenStep(area, stateObj, steps, backFn, nextFn) {
+  const c = card("Children travelling with you", "Add each child and set their age. Age affects vaccination advice, activities, and risk levels.");
+  const listWrap = document.createElement("div");
+  c.appendChild(listWrap);
+  function renderKids() {
+    listWrap.innerHTML = "";
+    const list = document.createElement("div"); list.className = "age-list";
+    stateObj.children.forEach((ch, i) => {
+      const row = document.createElement("div"); row.className = "age-row";
+      row.innerHTML = `<span class="child-label">Child ${i+1}</span>
+        <button class="age-btn" data-a="dec" data-i="${i}">−</button>
+        <span class="age-val">${ch.age} yr${ch.age!==1?"s":""}</span>
+        <button class="age-btn" data-a="inc" data-i="${i}">+</button>
+        ${stateObj.children.length>1?`<button class="del-btn" data-a="del" data-i="${i}">✕</button>`:""}`;
+      list.appendChild(row);
+    });
+    list.querySelectorAll("[data-a]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = +btn.dataset.i;
+        if (btn.dataset.a==="inc") stateObj.children[i].age=Math.min(17,stateObj.children[i].age+1);
+        if (btn.dataset.a==="dec") stateObj.children[i].age=Math.max(0,stateObj.children[i].age-1);
+        if (btn.dataset.a==="del") stateObj.children.splice(i,1);
+        renderKids();
+      });
+    });
+    const addBtn = document.createElement("button"); addBtn.className="add-btn"; addBtn.innerHTML="+ Add another child";
+    addBtn.addEventListener("click",()=>{ stateObj.children.push({age:4}); renderKids(); });
+    listWrap.appendChild(list); listWrap.appendChild(addBtn);
+  }
+  renderKids();
+  const btn = document.createElement("button"); btn.className="btn-next"; btn.innerHTML="Continue →";
+  btn.addEventListener("click", nextFn);
+  c.appendChild(navRow(backFn, btn));
+  area.appendChild(c);
+}
+
+function timingStep(area, stateObj, backFn, nextFn) {
+  const c = card("When are you going?", "Travel timing affects weather windows, seasonal health risks, and what's open.");
+  c.innerHTML += `<div class="two-col">
+    <div class="field"><label class="lbl">Month of travel</label>
+      <select id="month"><option value="">Select…</option>
+        ${MONTHS.map(m=>`<option value="${m}" ${stateObj.month===m?"selected":""}>${m}</option>`).join("")}
+      </select></div>
+    <div class="field"><label class="lbl">Trip duration</label>
+      <select id="dur"><option value="">Select…</option>
+        ${["3–5 days","1 week","10 days","2 weeks","3 weeks","1 month+"].map(d=>`<option value="${d}" ${stateObj.duration===d?"selected":""}>${d}</option>`).join("")}
+      </select></div>
+  </div>`;
+  const btn = document.createElement("button"); btn.className="btn-next"; btn.innerHTML="Continue →";
+  btn.addEventListener("click",()=>{
+    stateObj.month = document.getElementById("month").value;
+    stateObj.duration = document.getElementById("dur").value;
+    if (!stateObj.month||!stateObj.duration) return;
+    nextFn();
+  });
+  c.appendChild(navRow(backFn, btn));
+  area.appendChild(c);
+}
+
+function styleStep(area, stateObj, backFn, nextEl) {
+  const c = card("What's your travel style?", "Pick all that apply — we'll match recommendations to how your family likes to travel.");
+  const chipWrap = document.createElement("div"); chipWrap.className="chip-group";
+  const btn = nextEl;
+  STYLES.forEach(s => {
+    const ch = document.createElement("div");
+    ch.className="chip"+(stateObj.style.includes(s)?" selected":""); ch.textContent=s;
+    ch.addEventListener("click",()=>{
+      if (stateObj.style.includes(s)) stateObj.style=stateObj.style.filter(x=>x!==s);
+      else stateObj.style.push(s);
+      ch.classList.toggle("selected",stateObj.style.includes(s));
+      btn.disabled=!stateObj.style.length;
+    });
+    chipWrap.appendChild(ch);
+  });
+  c.appendChild(chipWrap);
+  btn.disabled=!stateObj.style.length;
+  c.appendChild(navRow(backFn, btn));
+  area.appendChild(c);
+}
+
+// ── Wizard flow ───────────────────────────────────────────────────────────────
+function renderWizard() {
+  const steps = STEPS_WIZARD;
+  const pa = document.getElementById("panel-area");
+  pa.innerHTML = "";
+  const pra = document.getElementById("progress-area");
+
+  if (wiz.step < 5) {
+    pra.innerHTML = "";
+    const bar = document.createElement("div"); bar.className="progress-bar";
+    for (let i=0;i<5;i++) {
+      const d=document.createElement("div");
+      d.className="step-dot "+(i<wiz.step?"done":i===wiz.step?"active":"upcoming");
+      d.textContent=i<wiz.step?"✓":i+1; bar.appendChild(d);
+      if (i<4){const l=document.createElement("div");l.className="step-line"+(i<wiz.step?" done":"");bar.appendChild(l);}
+    }
+    const wrap=document.createElement("div"); wrap.className="progress-wrap"; wrap.appendChild(bar);
+    const lbl=document.createElement("div"); lbl.className="progress-label";
+    lbl.textContent=`Step ${wiz.step+1} of 5 — ${steps[wiz.step]}`; wrap.appendChild(lbl);
+    pra.appendChild(wrap);
+  } else { pra.innerHTML=""; }
+
+  if (wiz.step===0) {
+    const c=card("Where are you heading?","Tell us your destination so we can tailor the report.");
+    c.innerHTML+=`<div class="field"><label class="lbl">City or country</label>
+      <input type="text" id="dest" placeholder="e.g. Cape Town, South Africa" value="${wiz.destination}" /></div>`;
+    const btn=document.createElement("button"); btn.className="btn-next"; btn.innerHTML="Continue →";
+    btn.addEventListener("click",()=>{
+      wiz.destination=document.getElementById("dest").value.trim();
+      if (!wiz.destination) return;
+      wiz.step=1; render();
+    });
+    c.appendChild(navRow(()=>{mode=null;render();},btn)); pa.appendChild(c);
+  }
+  else if (wiz.step===1) childrenStep(pa,wiz,STEPS_WIZARD,()=>{wiz.step=0;render();},()=>{wiz.step=2;render();});
+  else if (wiz.step===2) timingStep(pa,wiz,()=>{wiz.step=1;render();},()=>{wiz.step=3;render();});
+  else if (wiz.step===3) {
+    const btn=document.createElement("button"); btn.className="btn-next"; btn.innerHTML="Continue →";
+    btn.addEventListener("click",()=>{wiz.step=4;render();});
+    styleStep(pa,wiz,()=>{wiz.step=2;render();},btn);
+  }
+  else if (wiz.step===4) {
+    const c=card("What are your main concerns?","Select everything on your mind — the report addresses each one directly.");
+    const chipWrap=document.createElement("div"); chipWrap.className="chip-group";
+    const genBtn=document.createElement("button"); genBtn.className="btn-generate"; genBtn.innerHTML="✦ Generate report"; genBtn.disabled=!wiz.concerns.length;
+    CONCERNS.forEach(con=>{
+      const ch=document.createElement("div");
+      ch.className="chip"+(wiz.concerns.includes(con)?" selected":""); ch.textContent=con;
+      ch.addEventListener("click",()=>{
+        if(wiz.concerns.includes(con)) wiz.concerns=wiz.concerns.filter(x=>x!==con);
+        else wiz.concerns.push(con);
+        ch.classList.toggle("selected",wiz.concerns.includes(con));
+        genBtn.disabled=!wiz.concerns.length;
+      });
+      chipWrap.appendChild(ch);
+    });
+    c.appendChild(chipWrap);
+    genBtn.addEventListener("click",()=>{wiz.step=5;render();generateWizardReport();});
+    c.appendChild(navRow(()=>{wiz.step=3;render();},genBtn)); pa.appendChild(c);
+  }
+  else if (wiz.step===5) {
+    const c=document.createElement("div"); c.className="card";
+    c.innerHTML=`
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:1.25rem;">
+        <div>
+          <div class="card-title" style="margin-bottom:3px">Family Travel Readiness Report</div>
+          <div style="font-size:13px;color:var(--text-2)">${wiz.destination} · ${wiz.month} · ${wiz.duration}</div>
+        </div>
+        <button class="btn-pdf" id="pdf-btn" style="display:none">⬇ Save PDF</button>
+      </div>
+      <div id="report-body"><div class="loading-row"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>Generating your report… (this may take 15–20 seconds)</div></div>
+      <div class="nav" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
+        <button class="btn-back" id="restart">← Start over</button><div></div>
+      </div>`;
+    pa.appendChild(c);
+    document.getElementById("restart").addEventListener("click",()=>{
+      Object.assign(wiz,{step:0,destination:"",children:[{age:4}],month:"",duration:"",style:[],concerns:[]});
+      mode=null; render();
+    });
+  }
+}
+
+async function generateWizardReport() {
+  const childDesc=wiz.children.map((c,i)=>`Child ${i+1}: ${c.age} year${c.age!==1?"s":""} old`).join(", ");
+  const prompt=`You are a family travel health and safety expert with access to current web information. Search for up-to-date travel advisories, health requirements, and family travel information for the destination, then generate a Family Travel Readiness Report as a JSON object.
 
 Trip details:
-- Destination: ${state.destination} (${state.region})
+- Destination: ${wiz.destination}
 - Children: ${childDesc}
-- Travel month: ${state.month}
-- Duration: ${state.duration}
-- Travel style: ${state.style.join(", ")}
-- Parent concerns: ${state.concerns.join(", ")}
+- Travel month: ${wiz.month}
+- Duration: ${wiz.duration}
+- Travel style: ${wiz.style.join(", ")}
+- Parent concerns: ${wiz.concerns.join(", ")}
 
-Return ONLY valid JSON, no markdown, no backticks, no explanation. Use this exact structure:
-{
-  "overall_readiness": { "score": <1-10 integer>, "rating": <"Ready"|"Mostly Ready"|"Plan Carefully"|"Needs Preparation">, "summary": "<2 sentences>" },
-  "destination_overview": { "family_friendliness": <1-10>, "climate_in_month": "<string>", "recommended_age_range": "<string>", "highlights": ["<up to 3 child-friendly highlights>"] },
-  "health_checklist": [{ "item": "<string>", "priority": <"essential"|"recommended"|"optional">, "notes": "<brief>" }],
-  "safety_assessment": { "overall": <"low"|"moderate"|"high">, "notes": "<2 sentences>", "child_specific_tips": ["<2-3 tips>"] },
-  "concerns_addressed": [{ "concern": "<string>", "verdict": "<string>", "action": "<string>" }],
-  "packing_essentials": ["<5-7 items>"],
-  "best_activities": ["<3-5 age-appropriate activities>"],
-  "quick_verdict": "<one punchy sentence>"
-}`;
+Use web search to check: current travel advisories, vaccination requirements, malaria risk zones, and any recent safety or health developments for this destination.
 
-      try {
-        const res = await fetch("/api/report", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Server error");
-        const clean = data.text.replace(/```json|```/g, "").trim();
-        const report = JSON.parse(clean);
-        renderReport(report);
-      } catch (err) {
-        document.getElementById("report-body").innerHTML = `<div class="error-box"><strong>Something went wrong.</strong> ${err.message}</div>`;
-      }
+Return ONLY valid JSON, no markdown, no backticks, no explanation:
+{"overall_readiness":{"score":<1-10>,"rating":"Ready"|"Mostly Ready"|"Plan Carefully"|"Needs Preparation","summary":"<2 sentences>"},"destination_overview":{"family_friendliness":<1-10>,"climate_in_month":"<string>","recommended_age_range":"<string>","highlights":["<3 highlights>"]},"health_checklist":[{"item":"<string>","priority":"essential"|"recommended"|"optional","notes":"<brief>"}],"safety_assessment":{"overall":"low"|"moderate"|"high","notes":"<2 sentences>","child_specific_tips":["<2-3 tips>"]},"concerns_addressed":[{"concern":"<string>","verdict":"<string>","action":"<string>"}],"packing_essentials":["<5-7 items>"],"best_activities":["<3-5 activities>"],"quick_verdict":"<one sentence>"}`;
+
+  try {
+    const res=await fetch("/api/report",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
+    const data=await res.json();
+    if (!res.ok) throw new Error(data.error||"Server error");
+    const clean=data.text.replace(/```json|```/g,"").trim();
+    const report=JSON.parse(clean);
+    lastReport=report;
+    renderWizardReport(report);
+    const pdfBtn=document.getElementById("pdf-btn");
+    if (pdfBtn) { pdfBtn.style.display="flex"; pdfBtn.addEventListener("click",()=>downloadWizardPDF(report)); }
+  } catch(err) {
+    document.getElementById("report-body").innerHTML=`<div class="error-box"><strong>Something went wrong.</strong> ${err.message}</div>`;
+  }
+}
+
+function renderWizardReport(r) {
+  const sc=r.overall_readiness.score;
+  const col=sc>=7?"g":sc>=5?"a":"r";
+  const badgeCls=col==="g"?"badge-green":col==="a"?"badge-amber":"badge-red";
+  const safeCls=r.safety_assessment.overall==="low"?"badge-green":r.safety_assessment.overall==="moderate"?"badge-amber":"badge-red";
+  const pips=Array.from({length:10},(_,i)=>`<div class="pip ${i<sc?col:""}"></div>`).join("");
+
+  document.getElementById("report-body").innerHTML=`
+    <div class="section-card">
+      <div class="section-eyebrow">Overall readiness</div>
+      <div class="score-row"><span class="score-num">${sc}/10</span><span class="badge ${badgeCls}">${r.overall_readiness.rating}</span></div>
+      <div class="pip-row">${pips}</div>
+      <p style="font-size:13px;color:var(--text-2);line-height:1.6">${r.overall_readiness.summary}</p>
+    </div>
+    <div class="verdict-text">"${r.quick_verdict}"</div>
+    <div class="section-card">
+      <div class="section-eyebrow">Destination overview</div>
+      <div class="row-item"><span class="row-key">Family friendliness</span><span class="row-val">${r.destination_overview.family_friendliness}/10</span></div>
+      <div class="row-item"><span class="row-key">Climate in ${wiz.month}</span><span class="row-val">${r.destination_overview.climate_in_month}</span></div>
+      <div class="row-item"><span class="row-key">Best for ages</span><span class="row-val">${r.destination_overview.recommended_age_range}</span></div>
+      ${r.destination_overview.highlights.map(h=>`<div class="row-item"><span class="row-key" style="color:var(--green)">★</span><span class="row-val" style="text-align:left">${h}</span></div>`).join("")}
+    </div>
+    <div class="section-card">
+      <div class="section-eyebrow">Health checklist</div>
+      ${r.health_checklist.map(h=>{const hc=h.priority==="essential"?"badge-red":h.priority==="recommended"?"badge-amber":"badge-green";return`<div class="row-item"><span class="row-key" style="flex:1;text-align:left">${h.item}<br><span style="font-size:12px;color:var(--text-3)">${h.notes}</span></span><span class="badge ${hc}" style="flex-shrink:0;margin-left:10px">${h.priority}</span></div>`;}).join("")}
+    </div>
+    <div class="section-card">
+      <div class="section-eyebrow">Safety assessment</div>
+      <div style="margin-bottom:8px"><span class="badge ${safeCls}">Risk level: ${r.safety_assessment.overall}</span></div>
+      <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:10px">${r.safety_assessment.notes}</p>
+      <ul class="tip-list">${r.safety_assessment.child_specific_tips.map(t=>`<li>${t}</li>`).join("")}</ul>
+    </div>
+    <div class="section-card">
+      <div class="section-eyebrow">Your concerns answered</div>
+      ${r.concerns_addressed.map(c=>`<div class="concern-block"><div class="concern-name">${c.concern}</div><div class="concern-verdict">${c.verdict}</div><div class="concern-action">→ ${c.action}</div></div>`).join("")}
+    </div>
+    <div class="two-cards">
+      <div class="section-card"><div class="section-eyebrow">Best activities</div><ul class="tip-list">${r.best_activities.map(a=>`<li>${a}</li>`).join("")}</ul></div>
+      <div class="section-card"><div class="section-eyebrow">Pack these</div><ul class="tip-list">${r.packing_essentials.map(p=>`<li>${p}</li>`).join("")}</ul></div>
+    </div>
+    <div class="disclaimer">⚠ This report is AI-generated and intended as a starting point. Always verify health and entry requirements with official sources (your government's travel advisory, a travel medicine clinic) before departure.</div>`;
+}
+
+// ── PDF export — wizard ────────────────────────────────────────────────────────
+function downloadWizardPDF(r) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"mm", format:"a4" });
+  const W=210, margin=18, contentW=W-margin*2;
+  let y=20;
+
+  const addText=(text,x,fontSize,color,maxW)=>{
+    doc.setFontSize(fontSize); doc.setTextColor(...color);
+    const lines=doc.splitTextToSize(String(text),maxW||contentW);
+    doc.text(lines,x,y); y+=lines.length*(fontSize*0.45)+1;
+  };
+  const section=(title)=>{ y+=4; doc.setFillColor(241,240,236); doc.roundedRect(margin,y-4,contentW,8,2,2,"F"); addText(title.toUpperCase(),margin+3,8,[154,154,148],contentW-6); y+=2; };
+  const checkPage=()=>{ if(y>270){doc.addPage();y=20;} };
+
+  // Header
+  doc.setFillColor(29,158,117); doc.rect(0,0,210,28,"F");
+  doc.setFontSize(17); doc.setTextColor(255,255,255); doc.setFont(undefined,"bold");
+  doc.text("Family Travel Readiness Report",margin,13);
+  doc.setFontSize(10); doc.setFont(undefined,"normal");
+  doc.text(`${wiz.destination} · ${wiz.month} · ${wiz.duration} · Generated ${new Date().toLocaleDateString("en-GB")}`,margin,21);
+  y=36;
+
+  // Score
+  const sc=r.overall_readiness.score;
+  doc.setFontSize(28); doc.setFont(undefined,"bold"); doc.setTextColor(29,158,117);
+  doc.text(`${sc}/10`,margin,y); y+=2;
+  doc.setFontSize(11); doc.setFont(undefined,"bold"); doc.setTextColor(26,26,24);
+  doc.text(r.overall_readiness.rating,margin+22,y-8);
+  y+=2; doc.setFont(undefined,"normal");
+  addText(r.overall_readiness.summary,margin,10,[90,90,84]);
+  y+=3; doc.setFontSize(10); doc.setFont(undefined,"italic"); doc.setTextColor(90,90,84);
+  const vLines=doc.splitTextToSize(`"${r.quick_verdict}"`,contentW);
+  doc.text(vLines,margin,y); y+=vLines.length*5+6; doc.setFont(undefined,"normal");
+
+  checkPage(); section("Destination Overview");
+  addText(`Family friendliness: ${r.destination_overview.family_friendliness}/10   |   Climate in ${wiz.month}: ${r.destination_overview.climate_in_month}`,margin,10,[26,26,24]);
+  addText(`Best for ages: ${r.destination_overview.recommended_age_range}`,margin,10,[26,26,24]);
+  r.destination_overview.highlights.forEach(h=>{ checkPage(); addText(`★ ${h}`,margin+3,10,[29,158,117]); });
+  y+=4;
+
+  checkPage(); section("Health Checklist");
+  r.health_checklist.forEach(h=>{
+    checkPage();
+    const pColor=h.priority==="essential"?[226,75,74]:h.priority==="recommended"?[239,159,39]:[29,158,117];
+    doc.setFontSize(9); doc.setTextColor(...pColor); doc.setFont(undefined,"bold");
+    doc.text(h.priority.toUpperCase(),W-margin-20,y,{align:"right"});
+    doc.setFont(undefined,"bold"); doc.setTextColor(26,26,24); doc.setFontSize(10);
+    const tLines=doc.splitTextToSize(h.item,contentW-28);
+    doc.text(tLines,margin,y); y+=tLines.length*5;
+    addText(h.notes,margin+3,9,[154,154,148]); y+=1;
+  }); y+=3;
+
+  checkPage(); section("Safety Assessment");
+  const safeColor=r.safety_assessment.overall==="low"?[29,158,117]:r.safety_assessment.overall==="moderate"?[239,159,39]:[226,75,74];
+  doc.setFontSize(11); doc.setFont(undefined,"bold"); doc.setTextColor(...safeColor);
+  doc.text(`Risk level: ${r.safety_assessment.overall.toUpperCase()}`,margin,y); y+=6;
+  doc.setFont(undefined,"normal");
+  addText(r.safety_assessment.notes,margin,10,[90,90,84]);
+  r.safety_assessment.child_specific_tips.forEach(t=>{ checkPage(); addText(`• ${t}`,margin+3,10,[26,26,24]); }); y+=3;
+
+  checkPage(); section("Your Concerns");
+  r.concerns_addressed.forEach(c=>{
+    checkPage();
+    doc.setFontSize(10); doc.setFont(undefined,"bold"); doc.setTextColor(26,26,24);
+    const nLines=doc.splitTextToSize(c.concern,contentW); doc.text(nLines,margin,y); y+=nLines.length*5;
+    addText(c.verdict,margin+2,9,[90,90,84]);
+    doc.setTextColor(15,110,86); addText(`→ ${c.action}`,margin+2,9,[15,110,86]); y+=2;
+  }); y+=3;
+
+  checkPage(); section("Best Activities");
+  r.best_activities.forEach(a=>{ checkPage(); addText(`— ${a}`,margin+3,10,[26,26,24]); }); y+=3;
+
+  checkPage(); section("Packing Essentials");
+  r.packing_essentials.forEach(p=>{ checkPage(); addText(`☐  ${p}`,margin+3,10,[26,26,24]); }); y+=6;
+
+  checkPage();
+  doc.setFontSize(8); doc.setTextColor(154,154,148); doc.setFont(undefined,"italic");
+  const disc=doc.splitTextToSize("This report is AI-generated and intended as a starting point. Always verify health and entry requirements with official sources before departure.",contentW);
+  doc.text(disc,margin,y);
+
+  doc.save(`travel-report-${wiz.destination.replace(/\s+/g,"-").toLowerCase()}.pdf`);
+}
+
+// ── Compare flow ───────────────────────────────────────────────────────────────
+function renderCompare() {
+  const pa=document.getElementById("panel-area"); pa.innerHTML="";
+  const pra=document.getElementById("progress-area");
+
+  if (cmp.step<4) {
+    pra.innerHTML="";
+    const bar=document.createElement("div"); bar.className="progress-bar";
+    for(let i=0;i<4;i++){
+      const d=document.createElement("div");
+      d.className="step-dot "+(i<cmp.step?"done":i===cmp.step?"active":"upcoming");
+      d.textContent=i<cmp.step?"✓":i+1; bar.appendChild(d);
+      if(i<3){const l=document.createElement("div");l.className="step-line"+(i<cmp.step?" done":"");bar.appendChild(l);}
     }
+    const wrap=document.createElement("div"); wrap.className="progress-wrap"; wrap.appendChild(bar);
+    const lbl=document.createElement("div"); lbl.className="progress-label";
+    lbl.textContent=`Step ${cmp.step+1} of 4 — ${STEPS_COMPARE[cmp.step]}`; wrap.appendChild(lbl);
+    pra.appendChild(wrap);
+  } else { pra.innerHTML=""; }
 
-    function renderReport(r) {
-      const sc = r.overall_readiness.score;
-      const col = sc >= 7 ? "g" : sc >= 5 ? "a" : "r";
-      const badgeCls = col === "g" ? "badge-green" : col === "a" ? "badge-amber" : "badge-red";
-      const safeCls = r.safety_assessment.overall === "low" ? "badge-green" : r.safety_assessment.overall === "moderate" ? "badge-amber" : "badge-red";
-      const pips = Array.from({length:10}, (_,i) => `<div class="pip ${i < sc ? col : ''}"></div>`).join("");
-
-      document.getElementById("report-body").innerHTML = `
-        <div class="report-section">
-          <div class="section-card">
-            <div class="section-eyebrow">Overall readiness</div>
-            <div class="score-row">
-              <span class="score-num">${sc}/10</span>
-              <span class="badge ${badgeCls}">${r.overall_readiness.rating}</span>
-            </div>
-            <div class="pip-row">${pips}</div>
-            <p style="font-size:13px;color:var(--text-2);line-height:1.6">${r.overall_readiness.summary}</p>
-          </div>
-        </div>
-
-        <div class="verdict-text">"${r.quick_verdict}"</div>
-
-        <div class="report-section">
-          <div class="section-card">
-            <div class="section-eyebrow">Destination overview</div>
-            <div class="row-item"><span class="row-key">Family friendliness</span><span class="row-val">${r.destination_overview.family_friendliness}/10</span></div>
-            <div class="row-item"><span class="row-key">Climate in ${state.month}</span><span class="row-val">${r.destination_overview.climate_in_month}</span></div>
-            <div class="row-item"><span class="row-key">Best for ages</span><span class="row-val">${r.destination_overview.recommended_age_range}</span></div>
-            ${r.destination_overview.highlights.map(h => `<div class="row-item"><span class="row-key" style="color:var(--green)">★</span><span class="row-val" style="text-align:left">${h}</span></div>`).join("")}
-          </div>
-        </div>
-
-        <div class="report-section">
-          <div class="section-card">
-            <div class="section-eyebrow">Health checklist</div>
-            ${r.health_checklist.map(h => {
-              const hc = h.priority === "essential" ? "badge-red" : h.priority === "recommended" ? "badge-amber" : "badge-green";
-              return `<div class="row-item">
-                <span class="row-key" style="flex:1;text-align:left">${h.item}<br><span style="font-size:12px;color:var(--text-3);font-weight:400">${h.notes}</span></span>
-                <span class="badge ${hc}" style="flex-shrink:0;margin-left:10px">${h.priority}</span>
-              </div>`;
-            }).join("")}
-          </div>
-        </div>
-
-        <div class="report-section">
-          <div class="section-card">
-            <div class="section-eyebrow">Safety assessment</div>
-            <div style="margin-bottom:8px"><span class="badge ${safeCls}">Risk level: ${r.safety_assessment.overall}</span></div>
-            <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:10px">${r.safety_assessment.notes}</p>
-            <ul class="tip-list">${r.safety_assessment.child_specific_tips.map(t => `<li>${t}</li>`).join("")}</ul>
-          </div>
-        </div>
-
-        <div class="report-section">
-          <div class="section-card">
-            <div class="section-eyebrow">Your concerns answered</div>
-            ${r.concerns_addressed.map(c => `
-              <div class="concern-block">
-                <div class="concern-name">${c.concern}</div>
-                <div class="concern-verdict">${c.verdict}</div>
-                <div class="concern-action">→ ${c.action}</div>
-              </div>`).join("")}
-          </div>
-        </div>
-
-        <div class="two-cards report-section">
-          <div class="section-card">
-            <div class="section-eyebrow">Best activities</div>
-            <ul class="tip-list">${r.best_activities.map(a => `<li>${a}</li>`).join("")}</ul>
-          </div>
-          <div class="section-card">
-            <div class="section-eyebrow">Pack these</div>
-            <ul class="tip-list">${r.packing_essentials.map(p => `<li>${p}</li>`).join("")}</ul>
-          </div>
-        </div>
-      `;
+  if (cmp.step===0) {
+    const c=card("Which destinations are you considering?","Enter 2 or 3 destinations — we'll score each one for your family.");
+    const wrap=document.createElement("div");
+    function renderDestInputs(){
+      wrap.innerHTML="";
+      cmp.destinations.forEach((d,i)=>{
+        const row=document.createElement("div"); row.className="dest-row";
+        const num=document.createElement("div"); num.className="dest-num"; num.textContent=i+1;
+        const inp=document.createElement("input"); inp.type="text"; inp.placeholder=["e.g. Bali, Indonesia","e.g. Cape Verde","e.g. Portugal (optional)"][i];
+        inp.value=d; inp.addEventListener("input",()=>{ cmp.destinations[i]=inp.value; });
+        row.appendChild(num); row.appendChild(inp);
+        if(i===2){const rb=document.createElement("button");rb.className="del-btn";rb.textContent="✕";rb.addEventListener("click",()=>{cmp.destinations[2]="";renderDestInputs();});row.appendChild(rb);}
+        wrap.appendChild(row);
+      });
     }
+    renderDestInputs(); c.appendChild(wrap);
+    const btn=document.createElement("button"); btn.className="btn-next"; btn.innerHTML="Continue →";
+    btn.addEventListener("click",()=>{
+      const filled=cmp.destinations.filter(d=>d.trim());
+      if(filled.length<2) return;
+      cmp.step=1; render();
+    });
+    c.appendChild(navRow(()=>{mode=null;render();},btn)); pa.appendChild(c);
+  }
+  else if (cmp.step===1) childrenStep(pa,cmp,STEPS_COMPARE,()=>{cmp.step=0;render();},()=>{cmp.step=2;render();});
+  else if (cmp.step===2) timingStep(pa,cmp,()=>{cmp.step=1;render();},()=>{cmp.step=3;render();});
+  else if (cmp.step===3) {
+    const genBtn=document.createElement("button"); genBtn.className="btn-generate"; genBtn.innerHTML="⚖️ Compare destinations";
+    genBtn.addEventListener("click",()=>{cmp.step=4;render();generateCompare();});
+    styleStep(pa,cmp,()=>{cmp.step=2;render();},genBtn);
+  }
+  else if (cmp.step===4) {
+    const dests=cmp.destinations.filter(d=>d.trim());
+    const c=document.createElement("div"); c.className="card";
+    c.innerHTML=`
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:1.25rem;">
+        <div>
+          <div class="card-title" style="margin-bottom:3px">Destination Comparison</div>
+          <div style="font-size:13px;color:var(--text-2)">${dests.join(" vs ")} · ${cmp.month}</div>
+        </div>
+        <button class="btn-pdf" id="cpdf-btn" style="display:none">⬇ Save PDF</button>
+      </div>
+      <div id="compare-body"><div class="loading-row"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>Comparing destinations… (this may take 20–30 seconds)</div></div>
+      <div class="nav" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.25rem;">
+        <button class="btn-back" id="crestart">← Start over</button><div></div>
+      </div>`;
+    pa.appendChild(c);
+    document.getElementById("crestart").addEventListener("click",()=>{
+      Object.assign(cmp,{step:0,destinations:["","",""],children:[{age:4}],month:"",duration:"",style:[]});
+      mode=null; render();
+    });
+  }
+}
 
-    render();
-  </script>
+async function generateCompare() {
+  const dests=cmp.destinations.filter(d=>d.trim());
+  const childDesc=cmp.children.map((c,i)=>`Child ${i+1}: ${c.age} year${c.age!==1?"s":""} old`).join(", ");
+  const prompt=`You are a family travel expert. Use web search to research current travel conditions, then compare these destinations for a family trip.
+
+Destinations to compare: ${dests.join(", ")}
+Children: ${childDesc}
+Travel month: ${cmp.month}
+Duration: ${cmp.duration}
+Travel style: ${cmp.style.join(", ")}
+
+Search for current travel advisories, health requirements, and family travel info for each destination.
+
+Return ONLY valid JSON, no markdown, no backticks:
+{"destinations":[{"name":"<string>","family_score":<1-10>,"safety_score":<1-10>,"value_score":<1-10>,"verdict":"<2 sentences>","pros":["<3 pros for families>"],"cons":["<2-3 cons for families>"],"best_for":"<age range this suits best>","climate_note":"<climate in travel month>"}],"recommendation":{"winner":"<destination name>","reason":"<2-3 sentences explaining why this destination wins for this specific family>","runner_up":"<destination name or null>","runner_up_reason":"<1 sentence or null>"}}`;
+
+  try {
+    const res=await fetch("/api/report",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
+    const data=await res.json();
+    if (!res.ok) throw new Error(data.error||"Server error");
+    const clean=data.text.replace(/```json|```/g,"").trim();
+    const result=JSON.parse(clean);
+    lastCompare=result;
+    renderCompareResult(result);
+    const pdfBtn=document.getElementById("cpdf-btn");
+    if(pdfBtn){pdfBtn.style.display="flex";pdfBtn.addEventListener("click",()=>downloadComparePDF(result));}
+  } catch(err) {
+    document.getElementById("compare-body").innerHTML=`<div class="error-box"><strong>Something went wrong.</strong> ${err.message}</div>`;
+  }
+}
+
+function renderCompareResult(result) {
+  const winner=result.recommendation.winner;
+  let html=`<div style="background:var(--green-light);border:1.5px solid var(--green);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:1rem;">
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--green-text);margin-bottom:6px;">Our recommendation</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:4px;">🏆 ${winner}</div>
+    <div style="font-size:13px;color:var(--green-text);line-height:1.6">${result.recommendation.reason}</div>
+    ${result.recommendation.runner_up?`<div style="font-size:12px;color:var(--text-2);margin-top:6px">Runner-up: <strong>${result.recommendation.runner_up}</strong> — ${result.recommendation.runner_up_reason}</div>`:""}
+  </div>`;
+
+  result.destinations.forEach(d=>{
+    const isWinner=d.name===winner;
+    html+=`<div class="compare-card ${isWinner?"winner":""}">
+      <div class="compare-dest-name">${d.name}${isWinner?`<span class="winner-badge">Best match</span>`:""}</div>
+      <div class="compare-scores">
+        <div class="score-box"><div class="val" style="color:var(--green)">${d.family_score}/10</div><div class="lbl">Family fit</div></div>
+        <div class="score-box"><div class="val" style="color:${d.safety_score>=7?"var(--green)":d.safety_score>=5?"var(--amber)":"var(--red)"}">${d.safety_score}/10</div><div class="lbl">Safety</div></div>
+        <div class="score-box"><div class="val" style="color:var(--blue)">${d.value_score}/10</div><div class="lbl">Value</div></div>
+      </div>
+      <div class="compare-verdict">${d.verdict}</div>
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:8px">🗓 ${d.climate_note} &nbsp;·&nbsp; 👶 Best for ${d.best_for}</div>
+      <div class="compare-pros-cons">
+        <div class="pro-con-box"><div class="pro-con-title pros">✓ Pros</div><div class="pro-con-list">${d.pros.map(p=>`<div>• ${p}</div>`).join("")}</div></div>
+        <div class="pro-con-box"><div class="pro-con-title cons">✗ Watch out</div><div class="pro-con-list">${d.cons.map(p=>`<div>• ${p}</div>`).join("")}</div></div>
+      </div>
+    </div>`;
+  });
+
+  html+=`<div class="disclaimer">⚠ AI-generated based on current web data. Always verify travel advisories and entry requirements with official sources before booking.</div>`;
+  document.getElementById("compare-body").innerHTML=html;
+}
+
+// ── PDF export — compare ───────────────────────────────────────────────────────
+function downloadComparePDF(result) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"mm", format:"a4" });
+  const W=210, margin=18, contentW=W-margin*2;
+  let y=20;
+
+  const addText=(text,x,fontSize,color,maxW)=>{
+    doc.setFontSize(fontSize); doc.setTextColor(...color);
+    const lines=doc.splitTextToSize(String(text),maxW||contentW);
+    doc.text(lines,x,y); y+=lines.length*(fontSize*0.45)+1;
+  };
+  const checkPage=()=>{ if(y>270){doc.addPage();y=20;} };
+
+  // Header
+  doc.setFillColor(29,158,117); doc.rect(0,0,210,28,"F");
+  doc.setFontSize(17); doc.setTextColor(255,255,255); doc.setFont(undefined,"bold");
+  doc.text("Family Destination Comparison",margin,13);
+  const dests=cmp.destinations.filter(d=>d.trim());
+  doc.setFontSize(10); doc.setFont(undefined,"normal");
+  doc.text(`${dests.join(" vs ")} · ${cmp.month} · Generated ${new Date().toLocaleDateString("en-GB")}`,margin,21);
+  y=36;
+
+  // Winner
+  doc.setFillColor(225,245,238); doc.roundedRect(margin,y-4,contentW,24,3,3,"F");
+  doc.setFontSize(10); doc.setFont(undefined,"bold"); doc.setTextColor(8,80,65);
+  doc.text("OUR RECOMMENDATION",margin+4,y+2); y+=8;
+  doc.setFontSize(14); doc.setTextColor(29,158,117);
+  doc.text(`★ ${result.recommendation.winner}`,margin+4,y); y+=7;
+  doc.setFont(undefined,"normal"); doc.setFontSize(10); doc.setTextColor(8,80,65);
+  const recLines=doc.splitTextToSize(result.recommendation.reason,contentW-8);
+  doc.text(recLines,margin+4,y); y+=recLines.length*5+12;
+
+  // Each destination
+  result.destinations.forEach(d=>{
+    checkPage();
+    doc.setFillColor(241,240,236); doc.roundedRect(margin,y-4,contentW,10,2,2,"F");
+    doc.setFontSize(13); doc.setFont(undefined,"bold"); doc.setTextColor(26,26,24);
+    doc.text(d.name+(d.name===result.recommendation.winner?" ★":""),margin+3,y+3); y+=12;
+
+    // Scores row
+    const cols=[margin, margin+contentW/3, margin+contentW*2/3];
+    const scoreData=[["Family fit",d.family_score,[29,158,117]],["Safety",d.safety_score,d.safety_score>=7?[29,158,117]:d.safety_score>=5?[239,159,39]:[226,75,74]],["Value",d.value_score,[59,130,246]]];
+    scoreData.forEach(([lbl,val,col],i)=>{
+      doc.setFontSize(16); doc.setFont(undefined,"bold"); doc.setTextColor(...col);
+      doc.text(`${val}/10`,cols[i],y);
+      doc.setFontSize(8); doc.setFont(undefined,"normal"); doc.setTextColor(154,154,148);
+      doc.text(lbl,cols[i],y+5);
+    }); y+=14;
+
+    doc.setFont(undefined,"normal"); addText(d.verdict,margin,10,[90,90,84]);
+    doc.setFontSize(9); doc.setTextColor(90,90,84);
+    doc.text(`Climate: ${d.climate_note}   |   Best for ages: ${d.best_for}`,margin,y); y+=7;
+
+    doc.setFontSize(9); doc.setFont(undefined,"bold"); doc.setTextColor(15,110,86); doc.text("PROS",margin,y);
+    doc.setTextColor(166,45,45); doc.text("WATCH OUT",margin+contentW/2,y); y+=5;
+    doc.setFont(undefined,"normal");
+    const maxRows=Math.max(d.pros.length,d.cons.length);
+    for(let i=0;i<maxRows;i++){
+      checkPage();
+      if(d.pros[i]){doc.setTextColor(26,26,24);doc.setFontSize(9);const pl=doc.splitTextToSize(`• ${d.pros[i]}`,contentW/2-4);doc.text(pl,margin,y);}
+      if(d.cons[i]){doc.setTextColor(90,90,84);doc.setFontSize(9);const cl=doc.splitTextToSize(`• ${d.cons[i]}`,contentW/2-4);doc.text(cl,margin+contentW/2,y);}
+      y+=6;
+    }
+    y+=8;
+  });
+
+  checkPage();
+  doc.setFontSize(8); doc.setTextColor(154,154,148); doc.setFont(undefined,"italic");
+  const disc=doc.splitTextToSize("This report is AI-generated. Always verify travel advisories and entry requirements with official sources before booking.",contentW);
+  doc.text(disc,margin,y);
+
+  doc.save(`destination-comparison-${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+render();
+</script>
 </body>
 </html>
